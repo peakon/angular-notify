@@ -32,7 +32,9 @@ angular.module('cgNotify', []).factory('notify',['$interval','$http','$compile',
             if (maximumOpen > 0) {
                 var numToClose = (openNotificationsScope.length + 1) - maximumOpen;
                 for (var i = 0; i < numToClose; i++) {
-                    openNotificationsScope[i].$close();
+                    if (openNotificationsScope[i] && openNotificationsScope[i].hasOwnProperty('$close')) {
+                        openNotificationsScope[i].$close();
+                    }
                 }
             }
 
@@ -40,7 +42,7 @@ angular.module('cgNotify', []).factory('notify',['$interval','$http','$compile',
 
                 var templateElement = $compile(template)(scope);
                 templateElement.bind('webkitTransitionEnd oTransitionEnd otransitionend transitionend msTransitionEnd', function(e){
-                    if (e.propertyName === 'opacity' || e.currentTarget.style.opacity === 0 || 
+                    if (e.propertyName === 'opacity' || e.currentTarget.style.opacity === 0 ||
                         (e.originalEvent && e.originalEvent.propertyName === 'opacity')){
 
                         templateElement.remove();
@@ -112,7 +114,7 @@ angular.module('cgNotify', []).factory('notify',['$interval','$http','$compile',
             });
 
             var retVal = {};
-            
+
             retVal.close = function(){
                 if (scope.$close){
                     scope.$close();
