@@ -32,8 +32,12 @@ angular.module('cgNotify', []).factory('notify',['$interval','$http','$compile',
             if (maximumOpen > 0) {
                 var numToClose = (openNotificationsScope.length + 1) - maximumOpen;
                 for (var i = 0; i < numToClose; i++) {
-                    if (openNotificationsScope[i] && openNotificationsScope[i].hasOwnProperty('$close')) {
-                        openNotificationsScope[i].$close();
+                    if (openNotificationsScope[i]) {
+                        $interval(function(){
+                            if (openNotificationsScope[i].hasOwnProperty('$close')) {
+                                openNotificationsScope[i].$close();
+                            }
+                        }, 0, 1);
                     }
                 }
             }
