@@ -32,11 +32,9 @@ angular.module('cgNotify', []).factory('notify',['$interval','$http','$compile',
             if (maximumOpen > 0) {
                 var numToClose = (openNotificationsScope.length + 1) - maximumOpen;
                 for (var i = 0; i < numToClose; i++) {
-                    $interval(function(){
-                        if (openNotificationsScope[i] && openNotificationsScope[i].hasOwnProperty('$close')) {
-                            openNotificationsScope[i].$close();
-                        }
-                    }, 0, 1);
+                  if (openNotificationsScope[i] && openNotificationsScope[i].hasOwnProperty('$close')) {
+                      openNotificationsScope[i].$close();
+                  }
                 }
             }
 
@@ -79,25 +77,33 @@ angular.module('cgNotify', []).factory('notify',['$interval','$http','$compile',
                 }
 
                 scope.$close = function(){
-                    templateElement.css('opacity',0).attr('data-closing','true');
+                  templateElement.attr('data-closing','true');
+                    // templateElement.css('opacity',0).attr('data-closing','true');
                     layoutMessages();
                 };
 
                 var layoutMessages = function(){
                     var j = 0;
                     var currentY = startTop;
+                    var previousTop = 18;
                     for(var i = messageElements.length - 1; i >= 0; i --){
-                        var shadowHeight = 10;
                         var element = messageElements[i];
-                        var height = element[0].offsetHeight;
-                        var top = currentY + height + shadowHeight;
-                        if (element.attr('data-closing')){
-                            top += 20;
+                        var previousElement = messageElements[i - 1];
+                        var nextElement = messageElements[i - 1];
+                        var bottom;
+                        if (element.attr('data-closing')) {
+                            bottom = element.css('bottom');
+                            element.removeClass('animated bounceInLeft').addClass('animated bounceOutLeft');
+                            if (nextElement) {
+                              nextElement.css('bottom', bottom);
+                            }
                         } else {
-                            currentY += height + verticalSpacing;
+                            if (previousElement) {
+                              previousTop += element[0].offsetHeight + 18;
+                              previousElement.css('bottom', (previousTop) + 'px');
+                            }
+                            element.addClass('animated bounceInLeft').css('visibility','visible');
                         }
-                        element.css('top',top + 'px').css('margin-top','-' + (height+shadowHeight) + 'px').css('visibility','visible');
-                        j ++;
                     }
                 };
 
@@ -158,3 +164,31 @@ angular.module('cgNotify', []).factory('notify',['$interval','$http','$compile',
         return notify;
     }
 ]);
+
+angular.module('cgNotify').run(['$templateCache', function($templateCache) {
+  'use strict';
+
+  $templateCache.put('angular-notify.html',
+    "<div class=\"cg-notify-message\" ng-class=\"[$classes, \n" +
+    "    $position === 'center' ? 'cg-notify-message-center' : '',\n" +
+    "    $position === 'left' ? 'cg-notify-message-left' : '',\n" +
+    "    $position === 'right' ? 'cg-notify-message-right' : '']\"\n" +
+    "    ng-style=\"{'margin-left': $centerMargin}\">\n" +
+    "\n" +
+    "    <div ng-show=\"!$messageTemplate\">\n" +
+    "        {{$message}}\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div ng-show=\"$messageTemplate\" class=\"cg-notify-message-template\">\n" +
+    "        \n" +
+    "    </div>\n" +
+    "\n" +
+    "    <button type=\"button\" class=\"cg-notify-close\" ng-click=\"$close()\">\n" +
+    "        <span aria-hidden=\"true\">&times;</span>\n" +
+    "        <span class=\"cg-notify-sr-only\">Close</span>\n" +
+    "    </button>\n" +
+    "\n" +
+    "</div>"
+  );
+
+}]);
